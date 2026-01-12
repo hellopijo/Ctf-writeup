@@ -45,6 +45,7 @@ Then this loops shuffles it:
 <img width="401" height="201" alt="image" src="https://github.com/user-attachments/assets/4e7df80b-3abc-4943-baf9-45e67ea4e395" />
 
 This is [Fisher-Yates shuffle](https://en.wikipedia.org/wiki/Fisher%E2%80%93Yates_shuffle) using a [xorshift](https://en.wikipedia.org/wiki/Xorshift) PRNG (Pseudo-Random Number Generator)
+
 So now `local_e8` is a fixed permutation of `[0..23]`
 
 ### 4) XOR-based encryption with permutation
