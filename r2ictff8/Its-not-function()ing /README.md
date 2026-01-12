@@ -25,7 +25,23 @@ The problam we see here, there's no function or any encoded text that that will 
 
 ### 2) _secret_function
 
-As I scrolled up in symbol tree window in ghidra, there's suspicious function that's never called. 
+As I scrolled up in symbol tree window in ghidra, there's suspicious function that's never been called. 
 
 <img width="269" height="259" alt="image" src="https://github.com/user-attachments/assets/0c479dd7-c5d9-492a-aa2c-cc84406b4b6b" />
 
+These are not numbers in a meaningful numeric sense, they are raw bytes that represent an encoded ASCII string.
+
+```c
+uStack_28 = 0x3b3031313c3d303d;
+local_30  = 0x2130272021253436;
+local_20  = 0x32343933;
+```
+If you split them into bytes (little endian), they become characters like:
+
+```
+local_30: 36 34 25 21 20 27 30 21
+uStack_28: 3d 30 3d 3c 31 31 30 3b
+local_20: 33 39 34 32
+```
+
+__The decode call__
