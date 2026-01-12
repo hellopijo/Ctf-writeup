@@ -129,4 +129,70 @@ To solve, i need to:
     -> get flag
 
 ## Solutions
+### Python Script
 
+```python
+from pwn import *
+
+# --- 1. Constants ---
+target_blocks = [
+    (0x9fa1d1b7, 0x4bd067a5),
+    (0xd70102,   0x192cdd9e),
+    (0x28a9f4f9, 0xd65b2be4)
+]
+K = [0xc5eb2561, 0xbfbf8c08, 0xde38dc58, 0x21323a44]
+local_118 = [0x61, 0x25, 0xeb, 0xc5, 0x08, 0x8c, 0xbf, 0xbf, 0x58, 0xdc, 0x38, 0xde, 0x44, 0x3a, 0x32, 0x21]
+
+def get_shuffle_map():
+    uVar4 = 0x1337c0de
+    perm = list(range(24))
+    for i in range(23, 0, -1):
+        # bitwise ops are cleaner with pwn's masked integers if needed, 
+        # but standard python is fine here
+        uVar4 = ((uVar4 << 13) ^ uVar4) & 0xFFFFFFFF
+        uVar4 = (uVar4 ^ (uVar4 >> 17)) & 0xFFFFFFFF
+        uVar4 = ((uVar4 << 5) ^ uVar4) & 0xFFFFFFFF
+        idx = uVar4 % (i + 1)
+        perm[i], perm[idx] = perm[idx], perm[i]
+    return perm
+
+def decrypt_block(v0, v1):
+    delta = 0x61c88647
+    sum_val = (-0x3910c8e0) & 0xFFFFFFFF
+    for _ in range(32):
+        v1 = (v1 - ((v0 << 4) + K[2] ^ (v0 >> 5) + K[3] ^ sum_val + v0)) & 0xFFFFFFFF
+        v0 = (v0 - ((v1 << 4) + K[0] ^ (v1 >> 5) + K[1] ^ sum_val + v1)) & 0xFFFFFFFF
+        sum_val = (sum_val + delta) & 0xFFFFFFFF
+    return v0, v1
+
+# --- Solving Logic ---
+log.info("Starting decryption...")
+
+# Step A: Decrypt Blocks using p32 (instead of struct.pack)
+decrypted_bytes = b""
+for v0, v1 in target_blocks:
+    d0, d1 = decrypt_block(v0, v1)
+    decrypted_bytes += p32(d0) + p32(d1) # p32 = pack 32-bit little endian
+
+# Step B: Reverse Stream Cipher
+bVar8 = 0x5a
+unxored = []
+for i in range(24):
+    bVar10 = local_118[i & 0xf] ^ bVar8
+    unxored.append(decrypted_bytes[i] ^ bVar10)
+    bVar8 = (bVar8 + 7) & 0xFF
+
+# Step C: Un-shuffle
+perm = get_shuffle_map()
+flag_middle = [0] * 24
+for i in range(24):
+    flag_middle[perm[i]] = unxored[i]
+
+# Final Output using log.success
+flag = "flag{" + "".join(chr(c) for c in flag_middle) + "}"
+log.success(f"Found flag: {flag}")
+```
+
+## Flag
+
+<img width="785" height="106" alt="image" src="https://github.com/user-attachments/assets/13152c65-d831-4d02-9e95-3553a39adfb5" />
