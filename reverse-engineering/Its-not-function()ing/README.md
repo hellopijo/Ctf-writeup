@@ -63,7 +63,13 @@ This code very simple to understand, its executing XOR operation on every charac
 
 To solve it, we need to use the same logic as `_decoded()` function. So i write a simple python script:
 
-<img width="540" height="310" alt="image" src="https://github.com/user-attachments/assets/9685c0fd-e83f-4a1c-984d-56d18f2e3212" />
+```c
+encoded_text = "64%! \'0!=0=<110;3942"
+
+flag = ''
+for element in encoded_text:
+        flag += ''.join(chr(ord(element)^0x55))
+```
 
 ## Flag
 
