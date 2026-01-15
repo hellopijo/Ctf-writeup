@@ -2,46 +2,69 @@
 
 The file is 64-bit arm64 binary file so we can't run the program nor conduct dynamic analysis on it
 
-<img width="987" height="60" alt="image" src="https://github.com/user-attachments/assets/d8cb4d32-f274-4573-a5cf-45603b5f878e" />
+<img width="540" height="336" alt="image" src="https://github.com/user-attachments/assets/e6e08d7f-fbbf-4c13-9c0b-9e20caea5fdb" />
 
-So we run it on ghidra to understand the flow
+
+So we run it on binary ninja to understand the flow
 
 ## Program Flow
 
-### 1) Entry function
+__Main function__
 
-This function works as a main function. 
+<img width="540" height="300" alt="image" src="https://github.com/user-attachments/assets/b4b1f25d-acf3-40d7-ab3a-47767658acb8" />
 
-<img width="458" height="365" alt="image" src="https://github.com/user-attachments/assets/58c2e89c-fc8a-47f2-b53a-29c38486a74b" />
 
 It will takes user input and compare it with `nope` in this line of code:
 ```c
-iVar1 = _strcmp(acStack_34,"nope");
+if (_strcmp(var_40, "nope") != 0)
 ```
 
-Then it will print out `Nice try` if its identical and `Wrong key if different`.
+Then it will print out `Nice try` if its identical and `Wrong key if different` and exit with value `0`.
 
-The problam we see here, there's no function or any encoded text that that will print out flag.
+The problam we see here, there's no function or any encoded text that that will print out flag. So there's another function that will print the flag but never been called. Then, i found another function called `_secret_function()`.
 
-### 2) _secret_function
+<img width="540" height="298" alt="image" src="https://github.com/user-attachments/assets/3b916997-773e-42b6-90ac-e9bf43c01aee" />
 
-As I scrolled up in symbol tree window in ghidra, there's suspicious function that's never been called. 
-
-<img width="269" height="259" alt="image" src="https://github.com/user-attachments/assets/0c479dd7-c5d9-492a-aa2c-cc84406b4b6b" />
-
-These are not numbers in a meaningful numeric sense, they are raw bytes that represent an encoded ASCII string.
+This is the cleanup version of this functions:
 
 ```c
-uStack_28 = 0x3b3031313c3d303d;
-local_30  = 0x2130272021253436;
-local_20  = 0x32343933;
-```
-If you split them into bytes (little endian), they become characters like:
+    char buf[0x14 + 1];  // 20 bytes + null terminator
 
-```
-local_30: 36 34 25 21 20 27 30 21
-uStack_28: 3d 30 3d 3c 31 31 30 3b
-local_20: 33 39 34 32
+    strncpy(buf, "64%! '0!=0=<110;3942", 0x14);
+    buf[0x14] = '\0';    // ensure null termination
+
+    _decode(buf, 0x14);
+
+    printf("FLAG: %s\n", buf);
 ```
 
-__The decode call__
+So whats the function does is:
+- copy encoded string into buf
+- pass buf as arguments `_decode()` to modify the content of buf
+- print out the modified content of buf which clearly a flag
+
+
+<img width="522" height="300" alt="image" src="https://github.com/user-attachments/assets/f2f07cf0-421d-4000-995a-6fa32b6b5bf9" />
+
+Clean it up and we get:
+
+```c
+void _decode(char *buf, int len)
+{
+    for (int i = 0; i < len; i++) {
+        buf[i] ^= 0x55;
+    }
+}
+```
+
+This code very simple to understand, its executing XOR operation on every character with `0x55` to decode the buf content which is `64%! '0!=0=<110;3942`
+
+## Solution
+
+To solve it, we need to use the same logic as `_decoded()` function. So i write a simple python script:
+
+<img width="540" height="310" alt="image" src="https://github.com/user-attachments/assets/9685c0fd-e83f-4a1c-984d-56d18f2e3212" />
+
+## Flag
+
+<img width="540" height="145" alt="image" src="https://github.com/user-attachments/assets/2c86d2d9-b393-4baa-9c30-79a757c361e4" />
