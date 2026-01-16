@@ -74,3 +74,8 @@ for element in encoded_text:
 ## Flag
 
 <img width="540" height="145" alt="image" src="https://github.com/user-attachments/assets/2c86d2d9-b393-4baa-9c30-79a757c361e4" />
+
+
+### Notes
+
+The binary contains encoded strings embedded directly in the code along with the decoding logic. Because both the obfuscated data and the decode function are present in the binary, an attacker can recover the original values by reversing the logic. This represents insecure storage of sensitive data and reliance on weak, reversible obfuscation instead of proper cryptographic protection.
