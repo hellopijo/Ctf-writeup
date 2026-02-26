@@ -39,3 +39,4 @@ We already got the admin privilege and can go to admin page and gain the flag.
 
 ### Notes
 
+The "none" algorithm is a critical vulnerability that should never be enabled in production. To prevent this attack, ensure your JWT library is explicitly configured to reject tokens with `alg: none` and always enforce a specific, strong signing algorithm (like RS256 or HS256) on the server side. Never allow the token’s header to dictate your security logic; keep your dependencies updated to ensure these legacy bypasses are disabled by default.
